@@ -77,22 +77,33 @@ attr_reader   :possible_wins
     puts "    -----------"
     puts " C   #{@slots['c1']} | #{@slots['c2']} | #{@slots['c3']} "
     puts ""
+    unless game_over == true || @round == 10
+       puts "Enter the coordinates of the slot you wish to play:"
+    end
   end
 
   def player_turn
     clear_screen
     draw_board
-    puts "Enter the coordinates of the slot you wish to play"
-    response = gets.chomp.downcase
-    unless slots.keys.include? response # make sure it's a valid space
-      bad_move
-    end
+    move = ''
     filled = slots.map{ |slot,val| val != ' ' ? slot : nil }.compact
-    if filled.include? response # make sure the space isn't already occupied
-      occupied
+    while true
+      response = gets.chomp.downcase
+      if !slots.keys.include? response # make sure it's a valid space
+        clear_screen
+        @message = "That's not a valid slot. Please try again."
+        draw_board
+      elsif filled.include? response # make sure the space isn't already occupied
+        clear_screen
+        @message = "That slot is occupied. Please try again."
+        draw_board
+      else
+        move = response
+        break
+      end
     end
-    slots[response] = player[:position]
-    update_strategic response # update the list of strategic squares
+    slots[move] = player[:position]
+    update_strategic move # update the list of strategic squares
     @turn = 'mac'
     @round += 1
     @message = nil if @message
@@ -136,16 +147,6 @@ attr_reader   :possible_wins
   def mac_move(move)
     slots[move] = @mac[:position]
     update_strategic move
-  end
-
-  def  bad_move
-    @message = "That is not a valid slot. Please try again."
-    player_turn
-  end
-
-  def  occupied
-    @message = "That slot is occupied. Please try again."
-    player_turn
   end
 
 def check_two?(player_marker, possible_wins)
